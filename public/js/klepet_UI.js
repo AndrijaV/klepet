@@ -3,7 +3,10 @@ function divElementEnostavniTekst(sporocilo) {
   if (jeSmesko) {
     sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace('&lt;img', '<img').replace('png\' /&gt;', 'png\' />');
     return $('<div style="font-weight: bold"></div>').html(sporocilo);
-  } else {
+  } else if(sporocilo.indexOf("www.youtube.com") > -1){
+    sporocilo = sporocilo.replace('&lt;', '<').replace('&gt;', '>');
+    return $('<div id="player"></div>').html(sporocilo);
+} else {
     return $('<div style="font-weight: bold;"></div>').text(sporocilo);
   }
 }
@@ -13,6 +16,7 @@ function divElementHtmlTekst(sporocilo) {
 }
 
 function procesirajVnosUporabnika(klepetApp, socket) {
+  
   var sporocilo = $('#poslji-sporocilo').val();
   sporocilo = dodajSmeske(sporocilo);
   var sistemskoSporocilo;
@@ -23,6 +27,10 @@ function procesirajVnosUporabnika(klepetApp, socket) {
       $('#sporocila').append(divElementHtmlTekst(sistemskoSporocilo));
     }
   } else {
+   if(sporocilo.indexOf("www.youtube.com") > -1){
+    sporocilo="<iframe id='player' src='"+sporocilo.replace('watch?v=','embed/')+"?enablejsapi=1' frameborder='0' allowfullscreen></iframe>";
+  }
+  
     sporocilo = filtirirajVulgarneBesede(sporocilo);
     klepetApp.posljiSporocilo(trenutniKanal, sporocilo);
     $('#sporocila').append(divElementEnostavniTekst(sporocilo));
