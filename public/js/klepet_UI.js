@@ -1,9 +1,9 @@
 function divElementEnostavniTekst(sporocilo) {
-  var jeSmesko = sporocilo.indexOf('http://sandbox.lavbic.net/teaching/OIS/gradivo/') > -1;
+  var jeSmesko = sporocilo.indexOf('http://') > -1; //sandbox.lavbic.net/teaching/OIS/gradivo/
   if (jeSmesko) {
-    sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace('&lt;img', '<img').replace('png\' /&gt;', 'png\' />');
+    sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace('&lt;img', '<img').replace('/&gt;', '/>');
     return $('<div style="font-weight: bold"></div>').html(sporocilo);
-  } else {
+ } else {
     return $('<div style="font-weight: bold;"></div>').text(sporocilo);
   }
 }
@@ -14,7 +14,7 @@ function divElementHtmlTekst(sporocilo) {
 
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
-  sporocilo = dodajSmeske(sporocilo);
+
   var sistemskoSporocilo;
 
   if (sporocilo.charAt(0) == '/') {
@@ -23,10 +23,30 @@ function procesirajVnosUporabnika(klepetApp, socket) {
       $('#sporocila').append(divElementHtmlTekst(sistemskoSporocilo));
     }
   } else {
-    sporocilo = filtirirajVulgarneBesede(sporocilo);
-    klepetApp.posljiSporocilo(trenutniKanal, sporocilo);
-    $('#sporocila').append(divElementEnostavniTekst(sporocilo));
+    if((sporocilo.startsWith("http") || sporocilo.startsWith("https"))){
+      var res = sporocilo.split(" ");
+    } else {
+      var res=new Array(1);
+      res[0]=sporocilo;
+    }
+    
+    for(i=0; i<res.length; i++){
+    res[i] = dodajSmeske(res[i]);
+    
+    if ((res[i].toString().indexOf('sandbox.lavbic.net/teaching/OIS/gradivo/') < 0) &&((res[i].toString().startsWith("http") || res[i].toString().startsWith("https")) && (res[i].toString().endsWith(".jpg") || res[i].toString().endsWith(".png") || res[i].toString().endsWith(".gif")))  )  {
+     klepetApp.posljiSporocilo(trenutniKanal, res[i].toString());
+     $('#sporocila').append(divElementEnostavniTekst(res[i].toString()));
+     res[i]="<img class=\"slika\" src='"+res[i].toString() + "' />";
+     }  
+    
+    res[i] = filtirirajVulgarneBesede(res[i].toString());
+    klepetApp.posljiSporocilo(trenutniKanal, res[i].toString());
+    $('#sporocila').append(divElementEnostavniTekst(res[i].toString()));
     $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
+    
+    }
+    
+    
   }
 
   $('#poslji-sporocilo').val('');
